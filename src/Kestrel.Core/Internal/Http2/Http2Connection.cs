@@ -19,6 +19,7 @@ using Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http2.FlowControl;
 using Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Infrastructure;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
+using System.IO;
 
 namespace Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http2
 {
@@ -218,6 +219,11 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http2
 
                 error = ex;
             }
+            catch (IOException ex)
+            {
+                Log.RequestProcessingError(ConnectionId, ex);
+                error = ex;
+            }
             catch (Http2ConnectionErrorException ex)
             {
                 Log.Http2ConnectionError(ConnectionId, ex);
@@ -232,9 +238,9 @@ namespace Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http2
             }
             catch (Exception ex)
             {
+                Log.LogWarning(0, ex, CoreStrings.RequestProcessingEndError);
                 error = ex;
                 errorCode = Http2ErrorCode.INTERNAL_ERROR;
-                throw;
             }
             finally
             {

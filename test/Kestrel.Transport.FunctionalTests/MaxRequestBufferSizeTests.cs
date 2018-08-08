@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Testing;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Testing;
 using Xunit;
 
@@ -179,8 +180,16 @@ namespace Microsoft.AspNetCore.Server.Kestrel.FunctionalTests
                     }
                     else
                     {
-                        // Ensure all bytes can be sent before the server starts reading
-                        await sendTask;
+                        try
+                        {
+                            // Ensure all bytes can be sent before the server starts reading
+                            await sendTask;
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.LogError("sendTask threw: {0}", ex);
+                            throw;
+                        }
 
                         // Tell server to start reading request body
                         startReadingRequestBody.TrySetResult(null);
